@@ -58,7 +58,7 @@ fi
 # -------------------------------
 # 3rd-party GPG and sources list
 echo -e "${GREEN}[+]${NC} Adding Gazebo GPG key..."
-sudo wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
+curl -fsSL "https://packages.osrfoundation.org/gazebo.gpg" | sudo tee "/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg" > /dev/null
 
 echo -e "${GREEN}[+]${NC} Adding Gazebo APT source list..."
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" \
