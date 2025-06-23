@@ -4,17 +4,23 @@
 
 set -euo pipefail
 
+# Color codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
 current_command=""
 
 trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
-trap 'echo "[✗] \"$last_command\" command failed with exit code $? in $0"' ERR
+trap 'echo -e "${RED}[✗]${NC} \"$last_command\" command failed with exit code $? in $0"' ERR
 
-echo "[+] Installing required packages: curl, gpg, dpkg-dev..."
+echo -e "${GREEN}[+]${NC} Installing required packages: curl, gpg, dpkg-dev..."
 sudo apt-get update -qq
 sudo apt-get install -y curl gpg dpkg-dev
 
 ARCH=$(dpkg-architecture -qDEB_HOST_ARCH)
-echo "[+] Detected architecture: $ARCH"
+echo -e "${GREEN}[+]${NC} Detected architecture: $ARCH"
 
 LIST_PATH="/etc/apt/sources.list.d/eolab-drones-stable.list"
 KEY_URL="https://EOLab-HSRW.github.io/drones-ppa/eolab-drones.gpg"
@@ -25,10 +31,10 @@ REPOS=(
   "drones-fw=https://EOLab-HSRW.github.io/drones-fw/"
 )
 
-echo "[+] Downloading and installing GPG key..."
+echo -e "${GREEN}[+]${NC} Downloading and installing GPG key..."
 curl -fsSL "$KEY_URL" | sudo tee "$KEYRING_PATH" > /dev/null
 
-echo "[+] Writing APT sources to $LIST_PATH..."
+echo -e "${GREEN}[+]${NC} Writing APT sources to $LIST_PATH..."
 
 sudo truncate -s 0 "$LIST_PATH"
 
@@ -36,20 +42,32 @@ for repo in "${REPOS[@]}"; do
   name="${repo%%=*}"
   url="${repo#*=}"
 
-  echo "[+] Adding APT source: $name"
+  echo -e "${GREEN}[+]${NC} Adding APT source: $name"
   echo "deb [arch=$ARCH signed-by=$KEYRING_PATH] $url stable main" \
     | sudo tee -a "$LIST_PATH" > /dev/null
 done
 
 if curl -fsSL --head "$PREFERENCES_URL" | grep -qi '200 OK'; then
 
-  echo "[+] Downloading and installing APT preferences..."
+  echo -e "${GREEN}[+]${NC} Downloading and installing APT preferences..."
   sudo curl -fsSL "$PREFERENCES_URL" -o "/etc/apt/preferences.d/eolab-drones-stable.pref"
 else
-  echo "[!] APT preferences not found at $PREFERENCES_URL — skipping."
+  echo -e "${YELLOW}[!]${NC} APT preferences not found at $PREFERENCES_URL — skipping."
 fi
 
-echo "[+] Updating package lists..."
+# -------------------------------
+# 3rd-party GPG and sources list
+echo -e "${GREEN}[+]${NC} Adding Gazebo GPG key..."
+sudo wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
+
+echo -e "${GREEN}[+]${NC} Adding Gazebo APT source list..."
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" \
+  | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
+
+# end 3rd-party
+# -------------------------------
+
+echo -e "${GREEN}[+]${NC} Updating package lists..."
 sudo apt-get update -y
 
-echo "[✓] Setup complete."
+echo -e "${GREEN}[✓]${NC} Setup complete."
