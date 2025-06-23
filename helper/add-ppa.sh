@@ -44,7 +44,7 @@ done
 if curl -fsSL --head "$PREFERENCES_URL" | grep -qi '200 OK'; then
 
   echo "[+] Downloading and installing APT preferences..."
-  sudo curl -fsSL -o "/etc/apt/preferences.d/eolab-drones-stable.pref" "$PREFERENCES_URL"
+  sudo curl -fsSL "$PREFERENCES_URL" -o "/etc/apt/preferences.d/eolab-drones-stable.pref"
 else
   echo "[!] APT preferences not found at $PREFERENCES_URL — skipping."
 fi
