@@ -2,7 +2,9 @@
 
 # TODO (harley): add support for rosdep source list
 
-set -e
+set -euo pipefail
+
+current_command=""
 
 trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
 trap 'echo "[✗] \"$last_command\" command failed with exit code $? in $0"' ERR
