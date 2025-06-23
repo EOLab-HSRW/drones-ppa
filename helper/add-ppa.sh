@@ -13,7 +13,7 @@ NC='\033[0m' # No Color
 current_command=""
 
 trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
-trap 'echo -e "${RED}[✗]${NC} \"$last_command\" command failed with exit code $? in $0"' ERR
+trap 'echo -e "${RED}[x]${NC} \"$last_command\" command failed with exit code $? in $0"' ERR
 
 echo -e "${GREEN}[+]${NC} Installing required packages: curl, gpg, dpkg-dev..."
 sudo apt-get update -qq
@@ -43,7 +43,7 @@ for repo in "${REPOS[@]}"; do
   url="${repo#*=}"
 
   echo -e "${GREEN}[+]${NC} Adding APT source: $name"
-  echo "deb [arch=$ARCH signed-by=$KEYRING_PATH] $url stable main" \
+  echo "deb [arch=$ARCH signed-by=$KEYRING_PATH] $url ./" \
     | sudo tee -a "$LIST_PATH" > /dev/null
 done
 
