@@ -15,6 +15,13 @@ current_command=""
 trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
 trap 'echo -e "${RED}[x]${NC} \"$last_command\" command failed with exit code $? in $0"' ERR
 
+CHANNEL="${1:-stable}"  # Default to 'stable' if not provided
+
+if [[ "$CHANNEL" != "stable" && "$CHANNEL" != "dev" ]]; then
+  echo -e "${RED}[x]${NC} Invalid channel: \"$CHANNEL\". Choose 'stable' or 'dev'."
+  exit 1
+fi
+
 echo -e "${GREEN}[+]${NC} Installing required packages: curl, gpg, dpkg-dev..."
 sudo apt-get update -qq
 sudo apt-get install -y curl gpg dpkg-dev
@@ -28,7 +35,7 @@ KEYRING_PATH="/usr/share/keyrings/eolab-drones.gpg"
 PREFERENCES_URL="https://EOLab-HSRW.github.io/drones-ppa/eolab-drones-stable.pref"
 
 REPOS=(
-  "drones-fw=https://EOLab-HSRW.github.io/drones-fw/"
+  "drones-fw=https://EOLab-HSRW.github.io/drones-fw/=${ARCH} ${CHANNEL}"
 )
 
 echo -e "${GREEN}[+]${NC} Downloading and installing GPG key..."
@@ -39,11 +46,11 @@ echo -e "${GREEN}[+]${NC} Writing APT sources to $LIST_PATH..."
 sudo truncate -s 0 "$LIST_PATH"
 
 for repo in "${REPOS[@]}"; do
-  name="${repo%%=*}"
-  url="${repo#*=}"
+  IFS='=' read -r name url custom <<< "$repo"
+  custom=${custom:-"./"} 
 
   echo -e "${GREEN}[+]${NC} Adding APT source: $name"
-  echo "deb [arch=$ARCH signed-by=$KEYRING_PATH] $url ./" \
+  echo "deb [arch=$ARCH signed-by=$KEYRING_PATH] $url $custom" \
     | sudo tee -a "$LIST_PATH" > /dev/null
 done
 
