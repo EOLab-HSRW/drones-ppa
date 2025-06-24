@@ -35,7 +35,9 @@ KEYRING_PATH="/usr/share/keyrings/eolab-drones.gpg"
 PREFERENCES_URL="https://EOLab-HSRW.github.io/drones-ppa/eolab-drones-stable.pref"
 
 REPOS=(
-  "drones-fw=https://EOLab-HSRW.github.io/drones-fw/=${ARCH} ${CHANNEL}"
+  # TODO (harley): for now we have a flat repo structure for drones-fw
+  # later I'll add support for architectures and components (channels in our vage lexico)
+  "drones-fw=https://EOLab-HSRW.github.io/drones-fw/=./"
 )
 
 echo -e "${GREEN}[+]${NC} Downloading and installing GPG key..."
